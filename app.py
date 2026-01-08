@@ -19,7 +19,7 @@ st.title("🚀 Editorial AI: Research & Attribution")
 # --- SIDEBAR: KONFIGURASI API ---
 with st.sidebar:
     st.header("🔑 API Configuration")
-    gemini_key = st.text_input("Gemini API Key", type="password")
+    gemini_key = st.text_input("AIzaSyCq7FGux-FlDrODJ45pCxtnt3UAlA7DWR8", type="password")
     gpt_key = st.text_input("OpenAI API Key", type="password")
     st.info("Aplikasi ini menggunakan Gemini untuk data eksternal dan GPT untuk olah bahasa.")
 
