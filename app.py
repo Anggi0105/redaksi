@@ -19,7 +19,7 @@ st.title("🚀 Editorial AI: Research & Attribution")
 with st.sidebar:
     st.header("🔑 API Configuration")
     # Masukkan API Key Gemini di sini saat web sudah jalan
-    gemini_key = st.text_input("AIzaSyCq7FGux-FlDrODJ45pCxtnt3UAlA7DWR8", type="password")
+    gemini_key = st.text_input("Masukkan APi Di sini:, type="password")
     st.info("Website ini sekarang 100% menggunakan Google Gemini (Gratis).")
     st.markdown("[Dapatkan API Key Gratis di Sini](https://aistudio.google.com/)")
 
