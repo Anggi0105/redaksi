@@ -1,16 +1,15 @@
 import streamlit as st
 import google.generativeai as genai
-from openai import OpenAI
 
 # --- KONFIGURASI HALAMAN ---
-st.set_page_config(page_title="Editorial AI Assistant", layout="wide")
+st.set_page_config(page_title="Editorial AI Assistant (Gemini Only)", layout="wide")
 
-# --- CSS CUSTOM UNTUK TAMPILAN ---
+# --- CSS CUSTOM ---
 st.markdown("""
     <style>
     .stTabs [data-baseweb="tab-list"] { gap: 24px; }
-    .stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: #f0f2f6; border-radius: 5px; }
-    .author-box { padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; }
+    .stTabs [data-baseweb="tab"] { height: 50px; background-color: #f0f2f6; border-radius: 5px; }
+    .result-box { padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; line-height: 1.6; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -19,72 +18,70 @@ st.title("🚀 Editorial AI: Research & Attribution")
 # --- SIDEBAR: KONFIGURASI API ---
 with st.sidebar:
     st.header("🔑 API Configuration")
+    # Masukkan API Key Gemini di sini saat web sudah jalan
     gemini_key = st.text_input("AIzaSyCq7FGux-FlDrODJ45pCxtnt3UAlA7DWR8", type="password")
-    gpt_key = st.text_input("OpenAI API Key", type="password")
-    st.info("Aplikasi ini menggunakan Gemini untuk data eksternal dan GPT untuk olah bahasa.")
+    st.info("Website ini sekarang 100% menggunakan Google Gemini (Gratis).")
+    st.markdown("[Dapatkan API Key Gratis di Sini](https://aistudio.google.com/)")
 
-# --- FUNGSI SEARCH & ATTRIBUTION ---
-def get_author_attribution(author_name, api_key):
-    genai.configure(api_key=api_key)
-    # Menggunakan model Gemini 1.5 Flash/Pro yang mendukung web-search context
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    prompt = f"""
-    Cari informasi publik mengenai tokoh bernama: "{author_name}".
-    Tugas Anda adalah membuat 'Atribusi Penulis' atau 'Author Bio' untuk keperluan redaksi.
-    
-    Tolong rangkum:
-    1. Deskripsi singkat (siapa dia).
-    2. Latar belakang pendidikan atau organisasi (jika ada).
-    3. Bidang keahlian (Expertise).
-    4. Portofolio/Tulisan yang pernah dibuat atau pencapaian penting.
-    5. Buatkan 1 paragraf "About the Author" (Atribusi) yang profesional untuk diletakkan di akhir artikel.
-
-    Gunakan gaya bahasa jurnalistik yang formal dan akurat. Jika data tidak ditemukan secara spesifik, berikan template atribusi umum berdasarkan nama tersebut.
-    """
-    response = model.generate_content(prompt)
-    return response.text
+# --- FUNGSI AI (GEMINI) ---
+def ask_gemini(prompt, api_key):
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Terjadi kesalahan: {str(e)}"
 
 # --- TABS INTERFACE ---
 tab1, tab2 = st.tabs(["🔍 Keyword Research", "✍️ Author Attribution"])
 
 with tab1:
-    st.subheader("Riset Keyword & SERP")
-    keyword_input = st.text_input("Masukkan Keyword Utama:")
+    st.subheader("Riset Keyword & Strategi Konten")
+    keyword_input = st.text_input("Masukkan Keyword Utama (Contoh: cara memelihara kucing):")
+    
     if st.button("Analisis Keyword"):
-        if not gemini_key or not gpt_key:
-            st.warning("Input API Key di sidebar!")
+        if not gemini_key:
+            st.warning("Masukkan Gemini API Key di sidebar!")
+        elif not keyword_input:
+            st.warning("Masukkan keyword dulu!")
         else:
-            with st.spinner("Menganalisis data Google..."):
-                # (Fungsi riset keyword sama dengan kode sebelumnya)
-                st.write(f"Menampilkan hasil riset untuk: {keyword_input}")
-                # Logika riset keyword bisa diletakkan di sini...
+            with st.spinner("Gemini sedang menganalisis tren & membuat strategi..."):
+                prompt_keyword = f"""
+                Analisis keyword: "{keyword_input}" untuk audience Indonesia.
+                Tolong berikan:
+                1. Search Intent (Kenapa orang mencari ini?).
+                2. 5 Pertanyaan populer (People Also Ask).
+                3. Struktur artikel (H1, H2, H3) yang SEO-friendly.
+                4. Sudut pandang unik (Unique Angle) agar tulisan redaksi menonjol.
+                """
+                hasil_riset = ask_gemini(prompt_keyword, gemini_key)
+                st.markdown("### 📊 Strategi Konten")
+                st.markdown(f'<div class="result-box">{hasil_riset}</div>', unsafe_allow_html=True)
 
 with tab2:
     st.subheader("Pencari Atribusi Penulis")
-    st.info("Gunakan fitur ini untuk mencari rekam jejak penulis/narasumber agar redaksi tidak salah menuliskan titel atau latar belakang.")
-    
-    author_name = st.text_input("Masukkan Nama Lengkap Tokoh/Penulis:", placeholder="Contoh: Nadiem Makarim atau [Nama Wartawan]")
+    author_name = st.text_input("Masukkan Nama Lengkap Tokoh/Penulis:")
     
     if st.button("Cari Profil & Atribusi"):
         if not gemini_key:
-            st.error("Fitur ini membutuhkan Gemini API Key untuk melakukan pencarian data Google.")
+            st.error("Masukkan Gemini API Key di sidebar!")
         elif not author_name:
             st.warning("Silakan masukkan nama tokoh.")
         else:
-            with st.spinner(f"Mencari data tentang {author_name} di Google..."):
-                try:
-                    attribution_data = get_author_attribution(author_name, gemini_key)
-                    
-                    st.markdown("### 📄 Hasil Profil & Atribusi")
-                    st.markdown(f'<div class="author-box">{attribution_data}</div>', unsafe_allow_html=True)
-                    
-                    # Fitur Copy-Paste Ready
-                    st.button("Salin Atribusi (Fitur Simulasi)")
-                    
-                except Exception as e:
-                    st.error(f"Terjadi kesalahan: {e}")
+            with st.spinner(f"Mencari data tentang {author_name}..."):
+                prompt_author = f"""
+                Cari informasi publik mengenai tokoh bernama: "{author_name}".
+                Buatkan ringkasan profesional untuk redaksi:
+                1. Siapa dia (Bio singkat).
+                2. Bidang keahlian & Latar belakang.
+                3. Contoh karya atau pencapaian.
+                4. Buatkan 1 paragraf 'About the Author' untuk diletakkan di akhir artikel.
+                """
+                hasil_atribusi = ask_gemini(prompt_author, gemini_key)
+                st.markdown("### 📄 Hasil Profil & Atribusi")
+                st.markdown(f'<div class="result-box">{hasil_atribusi}</div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
-st.caption("Tools ini membantu redaksi memvalidasi data penulis secara otomatis.")
+st.caption("Powered by Google Gemini 1.5 Flash")
