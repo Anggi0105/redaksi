@@ -50,7 +50,7 @@ def ask_gemini_pro(prompt, api_key):
     try:
         genai.configure(api_key=api_key)
         # Menggunakan model 1.5 Pro untuk hasil terbaik
-        model = genai.GenerativeModel('gemini-1.5-pro-latest')
+        model = genai.GenerativeModel('gemini-1.5-pro')
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
